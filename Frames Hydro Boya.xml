@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<data>
+  <loop>false</loop>
+  <repeat_times>1</repeat_times>
+  <repeat_period>500</repeat_period>
+  <frames_list>
+    <frame name="OFF GW">
+      <payload>7E001010000013A20041EA5672FFFE00005400F6</payload>
+    </frame>
+    <frame name="ON GW">
+      <payload>7E001010000013A20041EA5672FFFE00005401F5</payload>
+    </frame>
+    <frame name="VERSION?">
+      <payload>7E000F10000013A20041EA5672FFFE00003F0B</payload>
+    </frame>
+    <frame name="Change MAC">
+      <payload>7E001710000013A20041EA5672FFFE0000470013A20041EA563F8E</payload>
+    </frame>
+    <frame name="On Sensors 1">
+      <payload>7E001010000013A20041EA5672FFFE00007301D6</payload>
+    </frame>
+    <frame name="Off sensors 1">
+      <payload>7E001010000013A20041EA5672FFFE00007300D7</payload>
+    </frame>
+    <frame name="Request sense 1">
+      <payload>7E001010000013A20041EA5672FFFE00007303D4</payload>
+    </frame>
+    <frame name="Set Points ON">
+      <payload>7E001010000013A20041EA5672FFFE00005301F6</payload>
+    </frame>
+    <frame name="Set Points OFF">
+      <payload>7E001010000013A20041EA5672FFFE00005300F7</payload>
+    </frame>
+    <frame name="SP">
+      <payload>7E001C10000013A20041EA5672FFFE000053021E001A0011001B001900370041</payload>
+    </frame>
+    <frame name="SP save">
+      <payload>7E001C10000013A20041EA5672FFFE000053021200640011006400190064008D</payload>
+    </frame>
+    <frame name="Reset Alarmas">
+      <payload>7E000F10000013A20041EA5672FFFE000052F8</payload>
+    </frame>
+    <frame name="? auto">
+      <payload>7E001010000013A20041EA5672FFFE0000793F92</payload>
+    </frame>
+    <frame name="Auto 1hr">
+      <payload>7E001010000013A20041EA5672FFFE00007901D0</payload>
+    </frame>
+    <frame name="Auto 3hrs">
+      <payload>7E001310000013A20041EA5672FFFE00007903020304C5</payload>
+    </frame>
+    <frame name="Auto 5hrs">
+      <payload>7E001510000013A20041EA5672FFFE0000790516171819204E</payload>
+    </frame>
+    <frame name="On Sensors 2">
+      <payload>7E001010000013A20041EA5672FFFE0000480101</payload>
+    </frame>
+    <frame name="Off Sensors 2">
+      <payload>7E001010000013A20041EA5672FFFE0000480002</payload>
+    </frame>
+    <frame name="Real time sens 2">
+      <payload>7E001010000013A20041EA5672FFFE0000483FC3</payload>
+    </frame>
+  </frames_list>
+</data>
