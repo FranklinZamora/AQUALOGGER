@@ -18,12 +18,13 @@
 bool tOnAQUA = false;
 bool setupInitial = false;
 bool alert = false;
+bool isTimeSynced = false;
 
 // Sensors and GPS
 TinyGPSPlus gps;
 SHT31 sht;
-bool isTimeSynced = false;
-bool newData = false;
+
+
 bool flagSensors = false;
 bool flagSensors2 = false;
 
@@ -76,9 +77,7 @@ byte dato;
 byte macGW[8];            // Mac ID EEPROM
 boolean macFound = false; // Bool Search MAC
 byte request[255];        // Frame Gateway
-byte xbresp[255];
-int sizexBee = 0;
-int index = 0;
+
 byte frameDiscover[] = {0x7E, 0x00, 0x04, 0x08, 0x01, 0x4E, 0x44, 0x64}; // Frame AT Node Discover
 
 // Max and Min
@@ -92,8 +91,7 @@ float _MinTemp = 9999;
 float _MaxWaterTemp = 0;
 float _MinWaterTemp = 9999;
 
-byte hour[2];
-byte minute[2];
+
 
 byte maxHumHour[2];
 byte maxHumMinute[2];
@@ -137,8 +135,9 @@ const long interval = 1000; // Intervalo de 1 segundo (en milisegundos)
 // Struct
 typedef union
 {
-    float value;
+    uint16_t value;
     uint8_t bytes[2];
 } UINT16_t; // Sensors Temp and Hum
 
 
+void getGps(void);

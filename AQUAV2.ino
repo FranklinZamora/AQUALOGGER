@@ -1,4 +1,5 @@
 #include "library.h"
+
 // SensorsNAS sensors(O2, PH, EC, ORP);
 
 UINT16_t temp, hum, waterTemp, maxtemp, mintemp, maxhum, minhum, maxwaterTemp, minwaterTemp;
@@ -13,10 +14,9 @@ void setup()
     senW.begin();
     sht.begin(0x44);
     Wire.setClock(100000);
-
-    for (int i = 0; i < 8; i++)
+    // leer eeproms
+    for (int i = 0; i <= 50; i++)
     {
-        macGW[i] = EEPROM.read(i);
         Serial.print(EEPROM[i], HEX);
         Serial.print(" ");
     }
@@ -28,8 +28,6 @@ void setup()
         for (int i = 0; i <= 7; i++)
         {
             macGW[i] = EEPROM[i];
-            Serial.print(EEPROM[i], HEX);
-            Serial.print(" ");
         }
         Serial.println();
 
@@ -50,15 +48,62 @@ void setup()
         {
             setupInitial = true;
             tOnAQUA = true;
-            Serial.println("AQUALOGGER ON");
         }
         else
         {
             setupInitial = true;
             tOnAQUA = false;
-            Serial.println("AQUALOGGER OFF");
         }
     }
+
+    maxhum.value = EEPROM[9];
+    maxHumHour[0] = EEPROM[10];
+    maxHumHour[1] = EEPROM[11];
+    maxHumMinute[0] = EEPROM[12];
+    maxHumMinute[1] = EEPROM[13];
+
+    minhum.value = EEPROM[14];
+    minHumHour[0] = EEPROM[15];
+    minHumHour[1] = EEPROM[16];
+    minHumMinute[1] = EEPROM[17];
+    minHumMinute[0] = EEPROM[18];
+
+    maxtemp.value = EEPROM[19];
+    maxTempHour[0] = EEPROM[20];
+    maxTempHour[1] = EEPROM[21];
+    maxTempMinute[0] = EEPROM[22];
+    maxTempMinute[1] = EEPROM[23];
+
+    mintemp.value = EEPROM[24];
+    minTempHour[0] = EEPROM[25];
+    minTempHour[1] = EEPROM[26];
+    minTempMinute[0] = EEPROM[27];
+    minTempMinute[1] = EEPROM[28];
+
+    maxwaterTemp.value = EEPROM[29];
+    maxWaterTempHour[0] = EEPROM[30];
+    maxWaterTempHour[1] = EEPROM[31];
+    maxWaterTempMinute[0] = EEPROM[32];
+    maxWaterTempMinute[1] = EEPROM[33];
+
+    minwaterTemp.value = EEPROM[34];
+    minWaterTempHour[0] = EEPROM[35];
+    minWaterTempHour[1] = EEPROM[36];
+    minWaterTempMinute[0] = EEPROM[37];
+    minWaterTempMinute[1] = EEPROM[38];
+
+    min_SPtemp1 = EEPROM[39];
+    min_SPtemp2 = EEPROM[40];
+    max_SPtemp1 = EEPROM[41];
+    max_SPtemp2 = EEPROM[42];
+    min_SPEnviromentTemp1 = EEPROM[43];
+    min_SPEnviromentTemp2 = EEPROM[44];
+    max_SPEnviromentTemp1 = EEPROM[45];
+    max_SPEnviromentTemp2 = EEPROM[46];
+    min_SPEnviromentHum1 = EEPROM[47];
+    min_SPEnviromentHum2 = EEPROM[48];
+    max_SPEnviromentHum1 = EEPROM[49];
+    max_SPEnviromentHum2 = EEPROM[50];
 
     byte vSend[] = {0x7E, 0x00, 0x16, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x41, 0x51, 0x55, 0x41, 0x56, 0x30, 0x2E, 0x31, generateChecksum(24, vSend)};
     debug(vSend, sizeof(vSend));
@@ -68,15 +113,14 @@ void setup()
 void loop()
 {
 
-    GetGps();
+    getGps();
 
-    sht.read();
-    hum.value = sht.getHumidity() * 100;
-    temp.value = sht.getTemperature() * 100;
-    senW.requestTemperatures();
-    waterTemp.value = senW.getTempCByIndex(0) * 100;
+    getSensors1();
 
-    debugSens();
+    if (flagSensors == true)
+    {
+        debugSens();
+    }
 
     if (currentGPSday != lastGPSday || hourUTC - lastGPShour >= 24)
     {
@@ -104,11 +148,6 @@ void loop()
     }
 
     // Convertir la hora y los minutos en formato decimal ASCII
-    char decHour[3];
-    char decMinute[3];
-
-    sprintf(decHour, "%02d", hourUTC);
-    sprintf(decMinute, "%02d", minuteUTC);
 
     // Max Hunidity
     if (hum.value > _MaxHum)
@@ -281,7 +320,7 @@ void loop()
 
         xbee.write(rAlertSPMin, sizeof(rAlertSPMin));
 
-        Serial.println("[ALERT]: SET POINT MIN WATER TEMP");
+        Serial.println(F("[ALERT]: SET POINT MIN WATER TEMP"));
         alert = true;
 
         return;
@@ -324,15 +363,14 @@ void loop()
             Serial.print(rAlertSPMin[i], HEX);
             if (rAlertSPMin[i] < 0x10)
             {
-                Serial.print("0");
+                Serial.print(F("0"));
             }
             Serial.print(" ");
         }
-        Serial.println();
 
         xbee.write(rAlertSPMin, sizeof(rAlertSPMin));
 
-        Serial.println("[ALERT]: SET POINT MAX WATER TEMP");
+        Serial.println(F("[ALERT]: SET POINT MAX WATER TEMP"));
         alert = true;
 
         return;
@@ -375,7 +413,7 @@ void loop()
             Serial.print(rAlertSPMin[i], HEX);
             if (rAlertSPMin[i] < 0x10)
             {
-                Serial.print("0");
+                Serial.print(F("0"));
             }
             Serial.print(" ");
         }
@@ -383,7 +421,7 @@ void loop()
 
         xbee.write(rAlertSPMin, sizeof(rAlertSPMin));
 
-        Serial.println("[ALERT]: SET POINT MIN ENVIROMENT TEMP");
+        Serial.println(F("[ALERT]: SET POINT MIN ENVIROMENT TEMP"));
         alert = true;
 
         return;
@@ -434,7 +472,7 @@ void loop()
 
         xbee.write(rAlertSPMin, sizeof(rAlertSPMin));
 
-        Serial.println("[ALERT]: SET POINT MAX ENVIROMENT TEMP");
+        Serial.println(F("[ALERT]: SET POINT MAX ENVIROMENT TEMP"));
         alert = true;
 
         return;
@@ -485,7 +523,7 @@ void loop()
 
         xbee.write(rAlertSPMin, sizeof(rAlertSPMin));
 
-        Serial.println("[ALERT]: SET POINT MIN ENVIROMENT HUM");
+        Serial.println(F("[ALERT]: SET POINT MIN ENVIROMENT HUM"));
         alert = true;
 
         return;
@@ -536,7 +574,7 @@ void loop()
 
         xbee.write(rAlertSPMin, sizeof(rAlertSPMin));
 
-        Serial.println("[ALERT]: SET POINT MAX ENVIROMENT HUM");
+        Serial.println(F("[ALERT]: SET POINT MAX ENVIROMENT HUM"));
         alert = true;
 
         return;
@@ -561,7 +599,7 @@ void loop()
                 {
                     if (request[16] == 0x00) // Off Gateway
                     {
-                        Serial.println("\n[INFO]: Turn Off Gateway.");
+                        Serial.println(F("[INFO]: Turn Off Gateway."));
                         byte tOff_GW[] = {0x7E, 0x00, 0x12, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x54, 0x4F, 0x46, 0x46, generateChecksum(20, tOff_GW)};
                         xbee.write(tOff_GW, sizeof(tOff_GW));
                         EEPROM.write(8, 0x00); // 00 Apagado virtual, Evaluar MAC
@@ -582,7 +620,7 @@ void loop()
 
                 if (request[2] == 0x0D && request[15] == 0x3F) // Version ?
                 {
-                    Serial.println("\n[INFO]: Version send.");
+                    Serial.println(F("[INFO]: Version send."));
                     byte vSend[] = {0x7E, 0x00, 0x16, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x41, 0x51, 0x55, 0x41, 0x56, 0x30, 0x2E, 0x31, generateChecksum(24, vSend)};
                     debug(vSend, sizeof(vSend));
                     xbee.write(vSend, sizeof(vSend));
@@ -614,7 +652,7 @@ void loop()
                 {
                     if (request[16] == 0x00) // Off
                     {
-                        Serial.println("[INFO]: Sensors 1 turn OFF");
+                        Serial.println(F("[INFO]: Sensors 1 turn OFF"));
                         byte tOFF_Sensors1[] = {0x7E, 0x00, 0x11, 0x10, 0x01, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x4F, 0x46, 0x46, generateChecksum(19, tOFF_Sensors1)};
                         debug(tOFF_Sensors1, sizeof(tOFF_Sensors1));
                         xbee.write(tOFF_Sensors1, sizeof(tOFF_Sensors1));
@@ -623,7 +661,7 @@ void loop()
 
                     else if (request[16] == 0x01) // On first sensors
                     {
-                        Serial.println("[INFO]: Sensors 1 turn ON.");
+
                         byte tON_Sensors1[] = {0x7E, 0x00, 0x10, 0x10, 0x01, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x4F, 0x4E, generateChecksum(18, tON_Sensors1)};
                         debug(tON_Sensors1, sizeof(tON_Sensors1));
                         xbee.write(tON_Sensors1, sizeof(tON_Sensors1));
@@ -636,15 +674,11 @@ void loop()
 
                         if (isTimeSynced)
                         {
-                            Serial.println("[INFO]: Send first packet sensors data with clock and max & min");
                             sense1();
                         }
                         else
                         {
-                            Serial.println("Send first packet sensors whithout clock");
-
                             byte requestSens_1[25];
-
                             requestSens_1[0] = 0x7E;
                             requestSens_1[1] = 0x00;
                             requestSens_1[2] = 0x15;
@@ -681,7 +715,7 @@ void loop()
 
                     if (request[16] == 0x00) // Set points OFF
                     {
-                        Serial.println("[INFO]: Set Points OFF");
+
                         byte tOFF_SP[] = {0x7E, 0x00, 0x12, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x53, 0x4F, 0x46, 0x46, generateChecksum(20, tOFF_SP)};
                         debug(tOFF_SP, sizeof(tOFF_SP));
                         xbee.write(tOFF_SP, sizeof(tOFF_SP));
@@ -690,7 +724,7 @@ void loop()
 
                     if (request[16] == 0x01) // Set points ON
                     {
-                        Serial.println("[INFO]: Set Points ON");
+
                         byte tON_SP[] = {0x7E, 0x00, 0x11, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x53, 0x4F, 0x4E, generateChecksum(19, tON_SP)};
                         debug(tON_SP, sizeof(tON_SP));
                         xbee.write(tON_SP, sizeof(tON_SP));
@@ -700,7 +734,7 @@ void loop()
 
                 if (flagSP == true && request[2] == 0x1A && request[15] == 0x53 && request[16] == 0x02) // Set SP
                 {
-                    Serial.println("Set Points SET");
+
                     min_SPtemp1 = request[17];
                     min_SPtemp2 = request[18];
                     max_SPtemp1 = request[19];
@@ -715,46 +749,52 @@ void loop()
                     max_SPEnviromentHum2 = request[28];
 
                     minSPtemp1 = min_SPtemp1;
-                    minSPtemp2 = min_SPtemp2 / 10.0;
-                    minSPtemperature = minSPtemp1 + minSPtemp2;
+                    minSPtemp2 = min_SPtemp2 / 100.0;
+                    minSPtemperature = (float)minSPtemp1 + (float)minSPtemp2;
 
                     maxSPtemp1 = max_SPtemp1;
-                    maxSPtemp2 = max_SPtemp2 / 10.0;
-                    maxSPtemperature = maxSPtemp1 + maxSPtemp2;
+                    maxSPtemp2 = max_SPtemp2 / 100.0;
+                    maxSPtemperature = (float)maxSPtemp1 + (float)maxSPtemp2;
 
                     minSPEnvTemp1 = min_SPEnviromentTemp1;
-                    minSPEnvTemp2 = min_SPEnviromentTemp2 / 10.0;
-                    minSPEnviromentTemp = minSPEnvTemp1 + minSPEnvTemp2;
+                    minSPEnvTemp2 = min_SPEnviromentTemp2 / 100.0;
+                    minSPEnviromentTemp = (float)minSPEnvTemp1 + (float)minSPEnvTemp2;
 
                     maxSPEnvTemp1 = max_SPEnviromentTemp1;
-                    maxSPEnvTemp2 = max_SPEnviromentTemp2 / 10.0;
-                    maxSPEnviromentTemp = maxSPEnvTemp1 + maxSPEnvTemp2;
+                    maxSPEnvTemp2 = max_SPEnviromentTemp2 / 100.0;
+                    maxSPEnviromentTemp = (float)maxSPEnvTemp1 + (float)maxSPEnvTemp2;
 
                     minSPEnvHum1 = min_SPEnviromentHum1;
-                    minSPEnvHum2 = min_SPEnviromentHum2 / 10.0;
-                    minSPEnviromentHum = minSPEnvHum1 + minSPEnvHum2;
+                    minSPEnvHum2 = min_SPEnviromentHum2 / 100.0;
+                    minSPEnviromentHum = (float)minSPEnvHum1 + (float)minSPEnvHum2;
 
                     maxSPEnvHum1 = max_SPEnviromentHum1;
-                    maxSPEnvHum2 = max_SPEnviromentHum2 / 10.0;
-                    maxSPEnviromentHum = maxSPEnvHum1 + maxSPEnvHum2;
+                    maxSPEnvHum2 = max_SPEnviromentHum2 / 100.0;
+                    maxSPEnviromentHum = (float)maxSPEnvHum1 + (float)maxSPEnvHum2;
 
-                    Serial.println(maxSPtemperature);
                     Serial.println(minSPtemperature);
+                    Serial.println(maxSPtemperature);
 
-                    Serial.println(maxSPEnviromentTemp);
                     Serial.println(minSPEnviromentTemp);
+                    Serial.println(maxSPEnviromentTemp);
 
-                    Serial.println(maxSPEnviromentHum);
                     Serial.println(minSPEnviromentHum);
+                    Serial.println(maxSPEnviromentHum);
 
                     if (EEPROM[8] == 0x01)
                     {
-                        EEPROM[39] = maxSPtemperature;
-                        EEPROM[40] = minSPtemperature;
-                        EEPROM[41] = maxSPEnviromentTemp;
-                        EEPROM[42] = minSPEnviromentTemp;
-                        EEPROM[43] = maxSPEnviromentHum;
-                        EEPROM[44] = minSPEnviromentHum;
+                        EEPROM[39] = min_SPtemp1;
+                        EEPROM[40] = min_SPtemp2;
+                        EEPROM[41] = max_SPtemp1;
+                        EEPROM[42] = max_SPtemp2;
+                        EEPROM[43] = min_SPEnviromentTemp1;
+                        EEPROM[44] = min_SPEnviromentTemp2;
+                        EEPROM[45] = max_SPEnviromentTemp1;
+                        EEPROM[46] = max_SPEnviromentTemp2;
+                        EEPROM[47] = min_SPEnviromentHum1;
+                        EEPROM[48] = min_SPEnviromentHum2;
+                        EEPROM[49] = max_SPEnviromentHum1;
+                        EEPROM[50] = max_SPEnviromentHum2;
                     }
 
                     byte tOK_SP[] = {0x7E, 0x00, 0x11, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x53, 0x4F, 0x4B, generateChecksum(19, tOK_SP)};
@@ -766,20 +806,14 @@ void loop()
                 if (request[2] == 0x0D && request[15] == 0x52) // Alarm reset
                 {
                     alert = false;
-                    Serial.println("[INFO]: Alarm Reset");
+
                     byte rAlarm[] = {0x7E, 0x00, 0x10, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x52, 0x52, generateChecksum(18, rAlarm)};
                     debug(rAlarm, sizeof(rAlarm));
                     xbee.write(rAlarm, sizeof(rAlarm));
                 }
 
-                if (request[2] == 0x0E && request[15] == 0x79 && request[16] == 0x3F)
-                {
-                    Serial.println("[INFO]: Configuration auto request");
-                }
-
                 if (request[2] == 0x0E && request[15] == 0x79 && request[16] == 0x01)
                 {
-                    Serial.println("[INFO]: Request 1HR");
 
                     rHr = true;
                     r3Hrs = false;
@@ -788,13 +822,12 @@ void loop()
 
                 if (request[2] == 0x11 && request[15] == 0x79 && request[16] == 0x03)
                 {
-                    Serial.println("[SEND]: Request 3HRs");
-                    hr1 = request[17];
-                    Serial.println(hr1);
-                    hr2 = request[18];
-                    Serial.println(hr2);
-                    hr3 = request[19];
-                    Serial.println(hr3);
+
+                    hr1 = (int)request[17];
+
+                    hr2 = (int)request[18];
+
+                    hr3 = (int)request[19];
 
                     rHr = false;
                     r3Hrs = true;
@@ -803,18 +836,16 @@ void loop()
 
                 if (request[2] == 0x13 && request[15] == 0x79 && request[16] == 0x05)
                 {
-                    Serial.println("[SEND]: Request  5HRs");
 
                     hr1 = (int)request[17];
-                    Serial.println(hr1);
+
                     hr2 = (int)request[18];
-                    Serial.println(hr2);
+
                     hr3 = (int)request[19];
-                    Serial.println(hr3);
+
                     hr4 = (int)request[20];
-                    Serial.println(hr4);
+
                     hr5 = (int)request[21];
-                    Serial.println(hr5);
 
                     rHr = false;
                     r3Hrs = false;
@@ -823,7 +854,7 @@ void loop()
 
                 if (request[2] == 0x0E && request[15] == 0x48 && request[16] == 0x01)
                 {
-                    Serial.println("[INFO]: Sensors 2 turn ON.");
+
                     byte tON_Sensors2[] = {0x7E, 0x00, 0x10, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x48, 0x01, generateChecksum(18, tON_Sensors2)};
                     debug(tON_Sensors2, sizeof(tON_Sensors2));
                     xbee.write(tON_Sensors2, sizeof(tON_Sensors2));
@@ -832,7 +863,7 @@ void loop()
 
                 if (request[2] == 0x0E && request[15] == 0x48 && request[16] == 0x00)
                 {
-                    Serial.println("[INFO]: Sensors 2 turn OFF.");
+
                     byte tOFF_Sensors2[] = {0x7E, 0x00, 0x10, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x48, 0x00, generateChecksum(18, tOFF_Sensors2)};
                     debug(tOFF_Sensors2, sizeof(tOFF_Sensors2));
                     xbee.write(tOFF_Sensors2, sizeof(tOFF_Sensors2));
@@ -840,8 +871,7 @@ void loop()
                 }
                 if (request[2] == 0x0E && request[15] == 0x48 && request[16] == 0x3F && flagSensors2 == true)
                 {
-                    Serial.println("[INFO]: Request Real Time.");
-                    //GenerateArray
+                    // GenerateArray
                 }
             }
         }
@@ -898,54 +928,67 @@ static void smartdelay(unsigned long ms)
     } while (millis() - start < ms);
 }
 
-void GetGps(void)
+void getGps(void)
 {
+    gps.encode(Serial.read());
+
     while (Serial.available() > 0)
-    {
+
         if (gps.encode(Serial.read()))
-        {
-            if (gps.date.isValid())
+
+            if (gps.date.isValid() == 1)
             {
-                int year = gps.date.year();
-                int month = gps.date.month();
-                int day = gps.date.day();
-                Serial.print("Fecha: ");
-                Serial.print(year);
-                Serial.print("-");
-                Serial.print(month);
-                Serial.print("-");
-                Serial.println(day);
+                currentGPSyear = gps.date.year();
+                currentGPSday = gps.date.day();
+
+                if (currentGPSyear != 2080)
+                {
+                    isTimeSynced = true;
+                    Serial.print("Fecha: ");
+                    Serial.print(currentGPSday);
+                    Serial.print("-");
+                    Serial.println(currentGPSyear);
+                }
             }
 
-            if (gps.time.isValid())
-            {
-                int hour = gps.time.hour();
-                int minute = gps.time.minute();
-                int second = gps.time.second();
-                Serial.print("Hora: ");
-                Serial.print(hour);
-                Serial.print(":");
-                Serial.print(minute);
-                Serial.print(":");
-                Serial.println(second);
-            }
-        }
+    if (gps.time.isValid() == 1)
+    {
+        hourUTC = gps.time.hour();
+        minuteUTC = gps.time.minute();
+        secondsUTC = gps.time.second();
+        Serial.print("Hora: ");
+        Serial.print(hourUTC);
+        Serial.print(":");
+        Serial.print(minuteUTC);
+        Serial.print(":");
+        Serial.println(secondsUTC);
     }
+
+    sprintf(decHour, "%02d", hourUTC);
+    sprintf(decMinute, "%02d", minuteUTC);
 
     smartdelay(1000);
 }
 
+void getSensors1()
+{
+    sht.read();
+    hum.value = (int16_t)(sht.getHumidity() * 100);
+    temp.value = (int16_t)(sht.getTemperature() * 100);
+    senW.requestTemperatures();
+    waterTemp.value = (int16_t)(senW.getTempCByIndex(0) * 100);
+}
+
 void debugSens()
 {
-    if (flagSensors == true)
-    {
-        Serial.print("Temp:");
-        Serial.print(temp.value / 100);
-        Serial.print(" Hum:");
-        Serial.print(hum.value / 100);
-        Serial.print(" Water Temp:");
-        Serial.println(waterTemp.value / 100);
-    }
+    Serial.print("Temp:");
+    Serial.print(temp.value / 100);
+    Serial.print(" Hum:");
+    Serial.print(hum.value / 100);
+    Serial.print(" Water Temp:");
+    Serial.println(waterTemp.value / 100);
+
+    // smartdelay(500);
 }
 
 void sense1()
@@ -1073,8 +1116,6 @@ void NodeDiscover()
 
                 if (strstr((char *)NI, "Coordinador"))
                 {
-                    Serial.println("Coordinador found");
-                    Serial.println("Ready ✓");
 
                     for (int i = 0; i < 8; i++)
                     {
