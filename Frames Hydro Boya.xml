@@ -5,6 +5,12 @@
   <repeat_times>1</repeat_times>
   <repeat_period>500</repeat_period>
   <frames_list>
+    <frame name="BATERIA">
+      <payload>7E001110000013A20041EA5672FFFE0000620000E8</payload>
+    </frame>
+    <frame name="PANEL">
+      <payload>7E000F10000013A20041EA5672FFFE000070DA</payload>
+    </frame>
     <frame name="OFF GW">
       <payload>7E001010000013A20041EA5672FFFE00005400F6</payload>
     </frame>
@@ -33,10 +39,10 @@
       <payload>7E001010000013A20041EA5672FFFE00005300F7</payload>
     </frame>
     <frame name="SP">
-      <payload>7E001C10000013A20041EA5672FFFE000053021E001A0011001B001900370041</payload>
+      <payload>7E001C10000013A20041EA5672FFFE0000530212001A0011001B00190037004D</payload>
     </frame>
     <frame name="SP save">
-      <payload>7E001C10000013A20041EA5672FFFE000053021200640011006400190064008D</payload>
+      <payload>7E001C10000013A20041EA5672FFFE000053026400640011006400190064003B</payload>
     </frame>
     <frame name="Reset Alarmas">
       <payload>7E000F10000013A20041EA5672FFFE000052F8</payload>
@@ -44,14 +50,14 @@
     <frame name="? auto">
       <payload>7E001010000013A20041EA5672FFFE0000793F92</payload>
     </frame>
-    <frame name="Auto 1hr">
+    <frame name="Auto 1hr sens 1">
       <payload>7E001010000013A20041EA5672FFFE00007901D0</payload>
     </frame>
-    <frame name="Auto 3hrs">
-      <payload>7E001310000013A20041EA5672FFFE00007903020304C5</payload>
+    <frame name="Auto 3hrs sens 1">
+      <payload>7E001310000013A20041EA5672FFFE00007903010203C8</payload>
     </frame>
-    <frame name="Auto 5hrs">
-      <payload>7E001510000013A20041EA5672FFFE0000790516171819204E</payload>
+    <frame name="Auto 5hrs sens 1">
+      <payload>7E001510000013A20041EA5672FFFE000079050405060708AE</payload>
     </frame>
     <frame name="On Sensors 2">
       <payload>7E001010000013A20041EA5672FFFE0000480101</payload>
@@ -61,6 +67,18 @@
     </frame>
     <frame name="Real time sens 2">
       <payload>7E001010000013A20041EA5672FFFE0000483FC3</payload>
+    </frame>
+    <frame name="Auto 1hr sens 2">
+      <payload>7E001110000013A20041EA5672FFFE0000480201FF</payload>
+    </frame>
+    <frame name="Auto 3hrs sens 2">
+      <payload>7E001410000013A20041EA5672FFFE00004802030A0203EE</payload>
+    </frame>
+    <frame name="Auto 5hrs Sens 2">
+      <payload>7E001610000013A20041EA5672FFFE0000480205060708090AD3</payload>
+    </frame>
+    <frame name="Request hrs conf 2">
+      <payload>7E001110000013A20041EA5672FFFE000048023FC1</payload>
     </frame>
   </frames_list>
 </data>

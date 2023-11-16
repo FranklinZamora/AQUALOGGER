@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"path": ".."
+			"path": "."
 		},
 		{
-			"path": "../../Arduino/libraries/SensorsNAS"
+			"path": "../libraries/SensorsNAS"
 		}
 	],
 	"settings": {}
