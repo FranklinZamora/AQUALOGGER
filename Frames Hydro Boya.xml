@@ -6,7 +6,7 @@
   <repeat_period>500</repeat_period>
   <frames_list>
     <frame name="BATERIA">
-      <payload>7E001110000013A20041EA5672FFFE0000620000E8</payload>
+      <payload>7E000F10000013A20041EA5672FFFE000062E8</payload>
     </frame>
     <frame name="PANEL">
       <payload>7E000F10000013A20041EA5672FFFE000070DA</payload>
@@ -79,6 +79,9 @@
     </frame>
     <frame name="Request hrs conf 2">
       <payload>7E001110000013A20041EA5672FFFE000048023FC1</payload>
+    </frame>
+    <frame name="Minuto sense">
+      <payload>7E001110000013A20041EA5672FFFE0000480204FC</payload>
     </frame>
   </frames_list>
 </data>

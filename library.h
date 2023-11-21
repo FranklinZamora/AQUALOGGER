@@ -99,8 +99,10 @@ int lastGPSday = -1;
 bool state = false;
 int lastHour = -1;
 int previousHour = -1;
+int previousMin = -1;
 
 // Auto Request
+bool rMin = false;
 bool rHrs = true;
 bool r3Hrs = false;
 bool r5Hrs = false;

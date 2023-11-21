@@ -319,6 +319,11 @@ void setup()
                 flagSensors2 = true;
             }
 
+            if (EEPROM[78] == 0x01)
+            {
+                rMin = true;
+            }
+
         } // EEPROM i !=ff
     }     // for cycle
 
@@ -552,6 +557,16 @@ void loop()
         xbee.write(rAlertSPMin, sizeof(rAlertSPMin));
 
         alertEnviormentHumMax = true;
+    }
+
+    if (isTimeSynced == true && rMin == true && flagSensors == true && flagSensors2 == true) // Send default sensor data 1 hr
+    {
+        if (minuteUTC != previousMin)
+        {
+            sensors.generateArray(macGW, sensors);
+            sense1();
+            previousMin = minuteUTC; // Update last value
+        }
     }
 
     if (isTimeSynced == true && rHrs == true && flagSensors == true) // Send default sensor data 1 hr
@@ -844,6 +859,7 @@ void loop()
                     rHrs = true;
                     r3Hrs = false;
                     r5Hrs = false;
+                    rMin = false;
 
                     if (setupInitial == true || tOnAQUA == true) // Save eeprom conf if AQUA is turn on
                     {
@@ -866,6 +882,7 @@ void loop()
                     rHrs = false;
                     r3Hrs = true;
                     r5Hrs = false;
+                    rMin = false;
 
                     if (setupInitial == true || tOnAQUA == true) // Save eeprom conf if AQUA is turn on
                     {
@@ -896,6 +913,7 @@ void loop()
                     rHrs = false;
                     r3Hrs = false;
                     r5Hrs = true;
+                    rMin = false;
 
                     if (setupInitial == true || tOnAQUA == true) // Save eeprom conf if AQUA is turn on
                     {
@@ -923,6 +941,7 @@ void loop()
                     rHrs_2 = true;
                     r3Hrs_2 = false;
                     r5Hrs_2 = false;
+                    rMin = false;
 
                     if (setupInitial == true || tOnAQUA == true) // Save eeprom conf if AQUA is turn on
                     {
@@ -942,6 +961,7 @@ void loop()
                     rHrs_2 = false;
                     r3Hrs_2 = true;
                     r5Hrs_2 = false;
+                    rMin = false;
 
                     if (setupInitial == true || tOnAQUA == true) // Save eeprom conf if AQUA is turn on
                     {
@@ -971,6 +991,7 @@ void loop()
                     rHrs_2 = false;
                     r3Hrs_2 = false;
                     r5Hrs_2 = true;
+                    rMin = false;
 
                     if (setupInitial == true || tOnAQUA == true) // Save eeprom conf if AQUA is turn on
                     {
@@ -985,6 +1006,21 @@ void loop()
                     byte rClient_2[] = {0x7E, 0x00, 0x16, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x48, 0x02, 0x05, hr1_2, hr2_2, hr3_2, hr4_2, hr5_2, generateChecksum(24, rClient_2)};
                     // debug(rClient_2, sizeof(rClient_2));
                     xbee.write(rClient_2, sizeof(rClient_2));
+                }
+
+                if (request[2] == 0x0F && request[15] == 0x48 && request[16] == 0x02 && request[17] == 0x04)
+                {
+                    rHrs_2 = false;
+                    r3Hrs_2 = false;
+                    r5Hrs_2 = false;
+                    rMin = true;
+                    byte rMin[] = {0x7E, 0x00, 0x11, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x48, 0x02, 0x04, generateChecksum(19, rMin)};
+                    // debug(rMin, sizeof(rMin));
+                    xbee.write(rMin, sizeof(rMin));              // Send configuration sensors 2 (Time)
+                    if (setupInitial == true || tOnAQUA == true) // Save eeprom conf if AQUA is turn on
+                    {
+                        EEPROM[78] = 0x01;
+                    }
                 }
 
                 if (request[2] == 0x0F && request[15] == 0x48 && request[16] == 0x02 && request[17] == 0x3F)
@@ -1010,7 +1046,7 @@ void loop()
                     byte tOFF_Sensors2[] = {0x7E, 0x00, 0x10, 0x10, 0x00, macGW[0], macGW[1], macGW[2], macGW[3], macGW[4], macGW[5], macGW[6], macGW[7], 0xFF, 0xFE, 0x00, 0x00, 0x48, 0x00, generateChecksum(18, tOFF_Sensors2)};
                     //   debug(tOFF_Sensors2, sizeof(tOFF_Sensors2));
                     xbee.write(tOFF_Sensors2, sizeof(tOFF_Sensors2));
-                    EEPROM[77] = 0x01;
+                    EEPROM[77] = 0x00;
                     flagSensors2 = false;
                 }
                 if (request[2] == 0x0E && request[15] == 0x48 && request[16] == 0x3F && flagSensors2 == true) // Send Sensors 2 in Real Time.
@@ -1079,11 +1115,11 @@ void getGps(void) // Get data clock for GPS
         hourUTC = gps.time.hour();
         minuteUTC = gps.time.minute();
         secondsUTC = gps.time.second();
-        Serial.print(hourUTC);
-        Serial.print(":");
-        Serial.print(minuteUTC);
-        Serial.print(":");
-        Serial.println(secondsUTC);
+        // Serial.print(hourUTC);
+        // Serial.print(":");
+        // Serial.print(minuteUTC);
+        // Serial.print(":");
+        // Serial.println(secondsUTC);
     }
 
     sprintf(decHour, "%02d", hourUTC);
